@@ -22,7 +22,7 @@ class Base64ImageCast extends CustomCastableBase
      *
      * @throws \Exception
      */
-    public function castAttribute($value)
+    public function setAttribute($value)
     {
         // Quickly determine if passed value is base 64 encoded string
         if (starts_with($value, 'data:image')) {

@@ -62,7 +62,7 @@ trait CustomCastableTrait
             $customCastObject = $this->getCustomCastObject($attribute);
 
             // Cast attribute according to logic from custom cast object
-            $this->attributes[$attribute] = $customCastObject->castAttribute($value);
+            $this->attributes[$attribute] = $customCastObject->setAttribute($value);
 
             return $this;
         }

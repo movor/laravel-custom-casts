@@ -14,10 +14,7 @@ class Image extends Model
     protected $table = 'images';
 
     protected $casts = [
-        'data' => 'array'
-    ];
-
-    protected $customCasts = [
+        'data' => 'array',
         'image' => Base64ImageCast::class,
     ];
 }

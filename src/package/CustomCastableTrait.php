@@ -24,12 +24,8 @@ trait CustomCastableTrait
             /** @var self $model */
             $model = $data[0];
 
-            if (!isset($model->customCasts)) {
-                self::throwInvalidCustomCastException($model);
-            }
-
-            foreach ($model->customCasts as $key => $value) {
-                $customCastObject = $model->getCustomCastObject($key);
+            foreach ($model->filterCustomCasts() as $attribute => $customCastClass) {
+                $customCastObject = $model->getCustomCastObject($attribute);
 
                 if (method_exists($customCastObject, $eventName)) {
                     $customCastObject->$eventName();
@@ -52,30 +48,49 @@ trait CustomCastableTrait
      */
     public function setAttribute($attribute, $value)
     {
-        if (// Handle defined mutators in object and
-            // prioritize them against custom castable
-            !$this->hasSetMutator($attribute) &&
+        // Give mutator priority over custom casts
+        if ($this->hasSetMutator($attribute)) {
+            $method = 'set' . studly_case($attribute) . 'Attribute';
 
-            // Check if there is custom casts for this attribute
-            isset($this->customCasts) && array_key_exists($attribute, $this->customCasts)
-        ) {
+            return $this->{$method}($value);
+        }
+
+        if (array_key_exists($attribute, $this->filterCustomCasts())) {
+            /** @var $customCastObject CustomCastableBase */
             $customCastObject = $this->getCustomCastObject($attribute);
 
-            // Cast attribute according to logic from custom cast object
             $this->attributes[$attribute] = $customCastObject->setAttribute($value);
 
             return $this;
         }
 
-        return parent::setAttribute($attribute, $value);
+        parent::setAttribute($attribute, $value);
+    }
+
+    /**
+     * Cast attribute (from db value to our custom format)
+     *
+     * @param $attribute
+     * @param $value
+     *
+     *
+     * @return mixed|null
+     */
+    protected function castAttribute($attribute, $value)
+    {
+        if (array_key_exists($attribute, $this->filterCustomCasts())) {
+            $customCastObject = $this->getCustomCastObject($attribute);
+
+            return $customCastObject->castAttribute($value);
+        }
+
+        return parent::castAttribute($attribute, $value);
     }
 
     /**
      * Lazy load custom cast object and return it
      *
      * @param $attribute
-     *
-     * @throws \Exception
      *
      * @return CustomCastableBase
      */
@@ -86,36 +101,27 @@ trait CustomCastableTrait
             return $this->customCastObjects[$attribute];
         }
 
-        // Check if custom casts property exists for this attribute
-        if (isset($this->customCasts) && array_key_exists($attribute, $this->customCasts)) {
-            $customCastClass = $this->customCasts[$attribute];
+        $customCastClass = $this->casts[$attribute];
+        $customCastObject = new $customCastClass($this, $attribute);
 
-            // Make sure that defined custom cast class is correct
-            if (!is_subclass_of($customCastClass, CustomCastableBase::class)) {
-                $message = "Custom cast class for '$attribute' needs to be extended from ";
-                $message .= CustomCastableBase::class;
-
-                throw new \Exception($message);
-            }
-
-            $customCastObject = new $customCastClass($this, $attribute);
-            return $this->customCastObjects[$attribute] = $customCastObject;
-        }
-
-        self::throwInvalidCustomCastException($this);
+        return $this->customCastObjects[$attribute] = $customCastObject;
     }
 
     /**
-     * @param $model
+     * Filter valid custom casts out of Model::$casts array
      *
-     * @throws \Exception
+     * @return array - key: model attribute (field name)
+     *               - value: custom cast class name
      */
-    public static function throwInvalidCustomCastException($model)
+    protected function filterCustomCasts()
     {
-        $trait = CustomCastableTrait::class;
-        $model = self::class;
-        $message = "Model class '$model' which uses '$trait' needs to have 'customCast' array property defined";
+        $customCasts = [];
+        foreach ($this->casts as $attribute => $castClass) {
+            if (is_subclass_of($castClass, CustomCastableBase::class)) {
+                $customCasts[$attribute] = $castClass;
+            }
+        }
 
-        throw new \Exception($message);
+        return $customCasts;
     }
 }

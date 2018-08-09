@@ -3,9 +3,8 @@
 namespace Movor\LaravelCustomCasts\Test\Integration;
 
 use Movor\LaravelCustomCasts\Test\Support\Models\Image;
-use Movor\LaravelCustomCasts\Test\Support\Models\ImageWithInvalidCustomCast;
 use Movor\LaravelCustomCasts\Test\Support\Models\ImageWithMutator;
-use Movor\LaravelCustomCasts\Test\Support\Models\ImageWithNoCustomCastsDefined;
+use Movor\LaravelCustomCasts\Test\Support\Models\ImageWithPrefixNameCast;
 use Movor\LaravelCustomCasts\Test\TestCase;
 
 class ModelCanUseCustomCastsTest extends TestCase
@@ -24,29 +23,7 @@ class ModelCanUseCustomCastsTest extends TestCase
         $imageModel->delete();
     }
 
-    public function test_handle_no_custom_casts_property_defined_with_trait_included()
-    {
-        $this->expectExceptionMessage('Model class');
-
-        $imageModel = new ImageWithNoCustomCastsDefined;
-        $imageModel->image = 'data:image/png;image.png';
-        $imageModel->save();
-
-        $imageModel->delete();
-    }
-
-    public function test_only_custom_castable_base_children_can_be_in_custom_casts_property()
-    {
-        $this->expectExceptionMessage('Custom cast class for');
-
-        $imageModel = new ImageWithInvalidCustomCast;
-        $imageModel->image = 'data:image/png;image.png';
-        $imageModel->save();
-
-        $imageModel->delete();
-    }
-
-    public function test_custom_cast_object_can_handle_model_events()
+    public function test_model_events_will_be_handled_in_custom_cast_objects()
     {
         //
         // Creating
@@ -102,7 +79,22 @@ class ModelCanUseCustomCastsTest extends TestCase
         $imageModel->delete();
     }
 
-    public function test_can_custom_cast_during_model_creation()
+    public function test_can_cast_attribute_from_db()
+    {
+        $imageName = str_random() . '.png';
+
+        $imageModel = ImageWithPrefixNameCast::create([
+            'image' => 'data:image/png;' . $imageName
+        ]);
+
+        $imageModel = ImageWithPrefixNameCast::find($imageModel->id);
+
+        $this->assertStringStartsWith('casted_', $imageModel->image);
+
+        $imageModel->delete();
+    }
+
+    public function test_can_set_attribute_during_model_creation()
     {
         $imageName = str_random() . '.png';
 
@@ -117,7 +109,7 @@ class ModelCanUseCustomCastsTest extends TestCase
         $imageModel->delete();
     }
 
-    public function test_can_custom_cast_during_model_update()
+    public function test_can_set_attribute_during_model_update()
     {
         $imageNameOne = str_random() . '.png';
         $imageNameTwo = str_random() . '.png';

@@ -10,7 +10,7 @@ collection,date, datetime and timestamp.
 
 If those default cast types are not enough and you want to make your own, this Laravel package is here to help you accomplish that.
 
-***
+---
 
 ## Compatibility
 
@@ -24,17 +24,26 @@ Install the package via composer:
 composer require movor/laravel-custom-casts
 ```
 
-## Casting User Image Example
+## Example: Casting User Image
 
-Assume that we have user model with "image" field (varchar 255 in database).
+Let's use default Laravel user model found in `app/User.php`.
 
-We'll need to add custom cast trait to our user model, and link it to the class that'll handle casting.
-So, let's edit user model file which is included in Laravel by default.
+Beside basic, predefined fields: `name`, `email` and `password`, we also want to allow user to upload his avatar. Assume that we already have users table with `image` field (you should create seeder for this).
+
+To utilize custom casts, we'll need to add trait to user model, and via `$casts` property link it to the cast class.
 
 ```php
 // File: app/User.php
 
+use App\CustomCasts\ImageCast;
+
 // ...
+
+protected $fillable = [
+    'name', 'email', 'password',
+    // We need to add "image" as well:
+    'image'
+];
 
 protected $casts = [
     'image' => ImageCast::class
@@ -43,7 +52,7 @@ protected $casts = [
 // ...
 ```
 
-Next step is to create class that'll handle casting. It must implement "setAttribute" method which will handle transforming initial value (passed to model) and any other logic involved.
+Next step is to create class that'll handle casting. It must implement "setAttribute" method which will take care of saving the image (from UploadedFile object) and generating image name with path - to be preserved in db.
 
 ```php
 // File: app/CustomCasts/ImageCast.php
@@ -55,16 +64,17 @@ use Illuminate\Http\UploadedFile;
 
 class ImageCast extends CustomCastableBase
 {
-    public function setAttribute(UploadedFile $file)
+    public function setAttribute($file)
     {
-        // Define storage dir
+        // Define storage folder
         // (relative to "storage/app" folder in Laravel project)
+        // Don't forget to create it !!!
         $storageDir = 'images';
 
         // Generate random image name
         $filename = str_random() . '.' . $file->extension();
 
-        // Save image
+        // Save image to predefined folder
         $file->storeAs($storageDir, $filename);
 
         // This will be stored in db field: "image"
@@ -74,37 +84,41 @@ class ImageCast extends CustomCastableBase
 ```
 
 Let's jump to user creation example. This will trigger our custom cast logic.
-We'll edit user creation method that can be found in Laravel default project.
+
+Assume that we have user controller which will handle user creation.
 
 ```php
-// File: app/Http/Controllers/Auth/RegisterController.php
+// File: app/Http/Controllers/UserController.php
 
 // ...
 
-protected function create(array $data)
+protected function create(Request $request)
 {
-    return User::create([
-        'name' => $data['name'],
-        'email' => $data['email'],
-        'password' => bcrypt($data['password']),
+    User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => bcrypt($request->password),
         // Past the whole Illuminate\Http\UploadedFile object,
-        // we'll handle it in our custom cast class
-        'image' => $data['image']
+        // we'll handle it in our ImageCast class
+        'image' => $request->file('image')
     ]);
 }
 
 // ...
 ```
 
-Ok, now we have our user created and user image stored.
+Ok, now we have our user created and image stored.
 
-But we should also handle deleting image when user is deleted. This can be accomplished by utilizing underlying eloquent events handling. Each time eloquent event is fired, it'll look up for public method with the same name in our custom cast class.
+But we should also handle deleting image when user is deleted. This can be accomplished by utilizing underlying eloquent
+events handling. Each time eloquent event is fired, it'll look up for public method with the same name in our custom cast class.
 
 Possible method names are:
-retrieved, creating, created, updating, updated, saving, saved,  deleting, deleted, restoring, restored.
+`retrieved`, `creating`, `created`, `updating`, `updated`, `saving`, `saved`, `deleting`, `deleted`, `restoring`, `restored`.
 
 ```php
 // File: app/CustomCasts/ImageCast.php
+
+use Storage;
 
 // ...
 

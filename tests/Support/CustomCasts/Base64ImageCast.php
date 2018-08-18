@@ -2,9 +2,9 @@
 
 namespace Movor\LaravelCustomCasts\Test\Support\CustomCasts;
 
-use Movor\LaravelCustomCasts\CustomCastableBase;
+use Movor\LaravelCustomCasts\CustomCastBase;
 
-class Base64ImageCast extends CustomCastableBase
+class Base64ImageCast extends CustomCastBase
 {
     /**
      * This array will be filled with all events called on related model

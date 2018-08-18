@@ -4,7 +4,7 @@ namespace Movor\LaravelCustomCasts;
 
 use Illuminate\Database\Eloquent\Model;
 
-abstract class CustomCastableBase
+abstract class CustomCastBase
 {
     /**
      * Model

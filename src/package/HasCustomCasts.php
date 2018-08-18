@@ -2,7 +2,7 @@
 
 namespace Movor\LaravelCustomCasts;
 
-trait CustomCastableTrait
+trait HasCustomCasts
 {
     /**
      * Each field which is going to be custom casted
@@ -15,7 +15,7 @@ trait CustomCastableTrait
     /**
      * Boot trait
      */
-    public static function bootCustomCastableTrait()
+    public static function bootHasCustomCasts()
     {
         // Enable custom cast classes to listen to model events
         \Event::listen('eloquent.*: ' . get_called_class(), function ($event, $data) {
@@ -56,7 +56,7 @@ trait CustomCastableTrait
         }
 
         if (array_key_exists($attribute, $this->filterCustomCasts())) {
-            /** @var $customCastObject CustomCastableBase */
+            /** @var $customCastObject CustomCastBase */
             $customCastObject = $this->getCustomCastObject($attribute);
 
             $this->attributes[$attribute] = $customCastObject->setAttribute($value);
@@ -92,7 +92,7 @@ trait CustomCastableTrait
      *
      * @param $attribute
      *
-     * @return CustomCastableBase
+     * @return CustomCastBase
      */
     protected function getCustomCastObject($attribute)
     {
@@ -117,7 +117,7 @@ trait CustomCastableTrait
     {
         $customCasts = [];
         foreach ($this->casts as $attribute => $castClass) {
-            if (is_subclass_of($castClass, CustomCastableBase::class)) {
+            if (is_subclass_of($castClass, CustomCastBase::class)) {
                 $customCasts[$attribute] = $castClass;
             }
         }

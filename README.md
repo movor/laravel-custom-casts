@@ -5,10 +5,11 @@
 [![Stable](https://poser.pugx.org/movor/laravel-custom-casts/v/stable)](https://packagist.org/packages/movor/laravel-custom-casts)
 [![License](https://poser.pugx.org/movor/laravel-custom-casts/license)](https://packagist.org/packages/movor/laravel-custom-casts)
 
-By default, from version 5 Laravel supports attribute casting. If we define cast property on our model, Laravel will help us convert defined attributes to common data types. Currently supported cast types (Laravel 5.6) are: integer, real, float, double, string, boolean, object, array,
-collection,date, datetime and timestamp.
+By default, from version 5 Laravel supports attribute casting. If we define cast property on our model, Laravel will
+help us convert defined attributes to common data types. Currently supported cast types (Laravel 5.6) are: `integer`,
+`real`, `float`, `double`, `string`, `boolean`, `object`, `array`, `collection`, `date`, `datetime` and `timestamp`.
 
-If those default cast types are not enough and you want to make your own, this Laravel package is here to help you accomplish that.
+If those default cast types are not enough and you want to make your own, this Laravel package is here to help.
 
 ---
 
@@ -26,43 +27,59 @@ composer require movor/laravel-custom-casts
 
 ## Example: Casting User Image
 
-Let's use default Laravel user model found in `app/User.php`.
+When saving an image, there is two things that needs to be done:
+1. Save image name (sometimes with path) into corresponding database field
+2. Save image physically on the disk
 
-Beside basic, predefined fields: `name`, `email` and `password`, we also want to allow user to upload his avatar. Assume that we already have users table with `image` field (you should create seeder for this).
+As a guidance for this example we'll use default Laravel user model found in `app/User.php`.
+
+Beside basic, predefined fields: `name`, `email` and `password`, we also want to allow user to upload his avatar. Assume
+that we already have `users` table with `image` field (you should create seeder for this).
 
 To utilize custom casts, we'll need to add trait to user model, and via `$casts` property link it to the cast class.
 
 ```php
 // File: app/User.php
 
+namespace App;
+
 use App\CustomCasts\ImageCast;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Movor\LaravelCustomCasts\HasCustomCasts;
 
-// ...
+class User extends Authenticatable
+{
+    use Notifiable, HasCustomCasts;
 
-protected $fillable = [
-    'name', 'email', 'password',
-    // We need to add "image" as well:
-    'image'
-];
+    protected $fillable = [
+        'name', 'email', 'password', 'image'
+    ];
 
-protected $casts = [
-    'image' => ImageCast::class
-];
+    protected $hidden = [
+        'password', 'remember_token'
+    ];
+
+    protected $casts = [
+        'image' => ImageCast::class
+    ];
+}
 
 // ...
 ```
 
-Next step is to create class that'll handle casting. It must implement "setAttribute" method which will take care of saving the image (from UploadedFile object) and generating image name with path - to be preserved in db.
+Next step is to create class that'll handle casting. It must implement `setAttribute` method which will take care of
+saving the image (from UploadedFile object) and generating image name with path - to be preserved in database.
 
 ```php
 // File: app/CustomCasts/ImageCast.php
 
 namespace App\CustomCasts;
 
-use Movor\LaravelCustomCasts\CustomCastableBase;
+use Movor\LaravelCustomCasts\CustomCastBase;
 use Illuminate\Http\UploadedFile;
 
-class ImageCast extends CustomCastableBase
+class ImageCast extends CustomCastBase
 {
     public function setAttribute($file)
     {
@@ -85,7 +102,10 @@ class ImageCast extends CustomCastableBase
 
 Let's jump to user creation example. This will trigger our custom cast logic.
 
-Assume that we have user controller which will handle user creation.
+Assume that we have user controller which will handle user creation. You should create this on your
+own.
+
+> Code below is just a simple example and should be used as guidance only.
 
 ```php
 // File: app/Http/Controllers/UserController.php
@@ -110,14 +130,17 @@ protected function create(Request $request)
 Ok, now we have our user created and image stored.
 
 But we should also handle deleting image when user is deleted. This can be accomplished by utilizing underlying eloquent
-events handling. Each time eloquent event is fired, it'll look up for public method with the same name in our custom cast class.
+events handling. Each time eloquent event is fired, logic will look up for public method with the same name in our custom
+cast class.
 
 Possible method names are:
-`retrieved`, `creating`, `created`, `updating`, `updated`, `saving`, `saved`, `deleting`, `deleted`, `restoring`, `restored`.
+`retrieved`, `creating`, `created`, `updating`, `updated`, `saving`, `saved`, `deleting`, `deleted`, `restoring`,
+`restored`.
 
 ```php
 // File: app/CustomCasts/ImageCast.php
 
+// Add at the top
 use Storage;
 
 // ...

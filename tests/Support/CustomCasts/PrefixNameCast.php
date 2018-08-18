@@ -2,9 +2,9 @@
 
 namespace Movor\LaravelCustomCasts\Test\Support\CustomCasts;
 
-use Movor\LaravelCustomCasts\CustomCastableBase;
+use Movor\LaravelCustomCasts\CustomCastBase;
 
-class PrefixNameCast extends CustomCastableBase
+class PrefixNameCast extends CustomCastBase
 {
     public function setAttribute($value)
     {

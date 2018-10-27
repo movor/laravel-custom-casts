@@ -1,21 +1,23 @@
-# Make your own cast type for Laravel model
+# Laravel Custom Casts 
+
+Make your own custom cast type for Laravel model attributes
 
 [![Build](https://api.travis-ci.org/movor/laravel-custom-casts.svg?branch=master)](https://travis-ci.org/movor/laravel-custom-casts)
 [![Downloads](https://poser.pugx.org/movor/laravel-custom-casts/downloads)](https://packagist.org/packages/movor/laravel-custom-casts)
 [![Stable](https://poser.pugx.org/movor/laravel-custom-casts/v/stable)](https://packagist.org/packages/movor/laravel-custom-casts)
 [![License](https://poser.pugx.org/movor/laravel-custom-casts/license)](https://packagist.org/packages/movor/laravel-custom-casts)
 
-By default, from version 5 Laravel supports attribute casting. If we define cast property on our model, Laravel will
+By default, from version 5 Laravel supports attribute casting. If we define `$cast` property on our model, Laravel will
 help us convert defined attributes to common data types. Currently supported cast types (Laravel 5.6) are: `integer`,
 `real`, `float`, `double`, `string`, `boolean`, `object`, `array`, `collection`, `date`, `datetime` and `timestamp`.
 
-If those default cast types are not enough and you want to make your own, this Laravel package is here to help.
+If those default cast types are not enough and you want to make your own, you'r on the right track.
 
 ---
 
 ## Compatibility
 
-The package is compatible with Laravel versions 5.5.* and 5.6.*
+The package is compatible with Laravel versions `>= 5.1`
 
 ## Installation
 
@@ -69,7 +71,7 @@ class User extends Authenticatable
 ```
 
 Next step is to create class that'll handle casting. It must implement `setAttribute` method which will take care of
-saving the image (from UploadedFile object) and generating image name with path - to be preserved in database.
+saving the image (from UploadedFile object, via form upload in this case) and generating image name with path - to be preserved in database.
 
 ```php
 // File: app/CustomCasts/ImageCast.php
@@ -127,14 +129,15 @@ protected function create(Request $request)
 // ...
 ```
 
-Ok, now we have our user created and image stored.
+Visit corresponding route input basic details and attach the image. After that, we'll have our user created and image 
+stored.
 
 But we should also handle deleting image when user is deleted. This can be accomplished by utilizing underlying eloquent
 events handling. Each time eloquent event is fired, logic will look up for public method with the same name in our custom
 cast class.
 
 Possible method names are:
-`retrieved`, `creating`, `created`, `updating`, `updated`, `saving`, `saved`, `deleting`, `deleted`, `restoring`,
+`retrieved`, `creating`, `created`, `updating`, `updated`, `saving`, `saved`, `deleting`, `deleted`, `restoring` and
 `restored`.
 
 ```php
@@ -145,6 +148,7 @@ use Storage;
 
 // ...
 
+// This method will be triggered after model has been deleted
 public function deleted()
 {
     // We can access underlying model with $this->model
@@ -159,4 +163,4 @@ public function deleted()
 
 ```
 
-This should cover the basics on usage of custom casts.
+This should cover basics usage of custom casts.

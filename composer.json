@@ -1,6 +1,6 @@
 {
   "name": "movor/laravel-custom-casts",
-  "description": "Make your own custom cast for Laravel model",
+  "description": "Make your own custom cast type for Laravel model attributes",
   "keywords": [
     "laravel",
     "model",

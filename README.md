@@ -1,11 +1,11 @@
-# Laravel Custom Casts 
-
-Make your own custom cast type for Laravel model attributes
+# Laravel Custom Casts
 
 [![Build](https://api.travis-ci.org/movor/laravel-custom-casts.svg?branch=master)](https://travis-ci.org/movor/laravel-custom-casts)
 [![Downloads](https://poser.pugx.org/movor/laravel-custom-casts/downloads)](https://packagist.org/packages/movor/laravel-custom-casts)
 [![Stable](https://poser.pugx.org/movor/laravel-custom-casts/v/stable)](https://packagist.org/packages/movor/laravel-custom-casts)
 [![License](https://poser.pugx.org/movor/laravel-custom-casts/license)](https://packagist.org/packages/movor/laravel-custom-casts)
+
+### Make your own custom cast type for Laravel model attributes
 
 By default, from version 5 Laravel supports attribute casting. If we define `$cast` property on our model, Laravel will
 help us convert defined attributes to common data types. Currently supported cast types (Laravel 5.6) are: `integer`,
@@ -129,7 +129,7 @@ protected function create(Request $request)
 // ...
 ```
 
-Visit corresponding route input basic details and attach the image. After that, we'll have our user created and image 
+Visit corresponding route input basic details and attach the image. After that, we'll have our user created and image
 stored.
 
 But we should also handle deleting image when user is deleted. This can be accomplished by utilizing underlying eloquent

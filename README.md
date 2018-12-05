@@ -15,6 +15,19 @@ If those default cast types are not enough and you want to make your own, you'r 
 
 ---
 
+:heavy_exclamation_mark::heavy_exclamation_mark::heavy_exclamation_mark:
+**MOVING GIT REPOSITORY**
+:heavy_exclamation_mark::heavy_exclamation_mark::heavy_exclamation_mark:
+
+This package **repo and maintenance will continue on**:
+
+[**vkovic/laravel-custom-casts**](https://github.com/vkovic/laravel-custom-casts).
+
+:truck:  :truck:  :truck:  :truck:  :truck:  :truck:  :truck:  :truck:
+:truck:  :truck:  :truck:  :truck:  :truck:  :truck:  :truck:
+
+---
+
 ## Compatibility
 
 The package is compatible with Laravel versions `>= 5.1`
